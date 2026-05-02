@@ -6,21 +6,20 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Lock } from "lucide-react";
 
-const ADMIN_PASSKEY = "5309";
-
 interface Props {
   open: boolean;
   onClose: () => void;
   onUnlock: () => void;
+  passkey: string;
 }
 
-export function AdminGate({ open, onClose, onUnlock }: Props) {
+export function AdminGate({ open, onClose, onUnlock, passkey }: Props) {
   const [code, setCode] = useState("");
   const { toast } = useToast();
 
   const submit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (code.trim() === ADMIN_PASSKEY) {
+    if (code.trim() === (passkey || "").trim()) {
       setCode("");
       onUnlock();
       toast({ title: "Admin mode", description: "You now have full edit access." });
@@ -45,7 +44,6 @@ export function AdminGate({ open, onClose, onUnlock }: Props) {
             <Input
               type="password"
               autoFocus
-              inputMode="numeric"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="••••"
