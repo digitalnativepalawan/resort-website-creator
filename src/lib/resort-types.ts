@@ -188,7 +188,7 @@ export const DEFAULT_CONTACT: ContactInfo = {
   email: "reservations@ultimacorfu.com",
   phone: "+30 210 000 0000",
   whatsapp: "+30 690 000 0000",
-  address: "Corfu, Greece",
+  address: "Palawan, Philippines",
   website: "ultimacollection.com",
   socials: [
     { id: "s1", platform: "Instagram", url: "https://instagram.com/ultimacollection" },
