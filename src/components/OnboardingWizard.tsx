@@ -28,6 +28,9 @@ interface Props {
   submitLabel?: string;
   autoPublish?: boolean;
   onAutoPublishChange?: (v: boolean) => void;
+  isAdmin?: boolean;
+  adminPasskey?: string;
+  onAdminPasskeyChange?: (v: string) => void;
 }
 
 const STEPS = ["Basic Info", "Description", "Amenities", "Images & Pricing", "Highlights", "Rooms", "Video Tour", "FAQ", "Map", "Restaurant", "Experiences", "Section Order", "Contact"];
