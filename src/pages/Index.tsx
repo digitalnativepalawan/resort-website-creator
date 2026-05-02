@@ -7,6 +7,7 @@ import { AdminGate } from "@/components/AdminGate";
 import { AdminBar } from "@/components/AdminBar";
 import { useToast } from "@/hooks/use-toast";
 import { I18nContext, LangCode } from "@/lib/i18n";
+import { ResortSEO } from "@/components/ResortSEO";
 
 const LANG_KEY = "resort.lang.v1";
 const AUTO_PUBLISH_KEY = "resort.autopublish.v1";
@@ -15,6 +16,7 @@ const Index = () => {
   const {
     resort, setResort, theme, setTheme, onboarded, setOnboarded,
     settingsLoaded, isAdmin, setIsAdmin, resetResort, clearResort, publishNow, cloudStatus, lastSavedAt,
+    adminPasskey,
   } = useResortStore();
   const [wizardOpen, setWizardOpen] = useState(!onboarded);
   const [gateOpen, setGateOpen] = useState(false);
