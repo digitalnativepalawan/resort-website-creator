@@ -970,6 +970,30 @@ export function OnboardingWizard({ open, initial, onComplete, onClose, startStep
                   })}
                 </div>
 
+                <div className="space-y-2 pt-4 border-t border-border">
+                  <Label className="eyebrow">Public Website URL</Label>
+                  <p className="text-xs text-muted-foreground">
+                    The canonical URL where this resort lives (e.g. <span className="font-mono">https://baia-palawan.com</span>).
+                    Used for SEO tags, social previews, and JSON-LD. Leave blank to use the current browser URL.
+                  </p>
+                  <Input
+                    value={data.canonicalUrl ?? ""}
+                    onChange={(e) => update("canonicalUrl", e.target.value)}
+                    placeholder="https://your-resort.com"
+                    inputMode="url"
+                  />
+                  <div className="border border-border bg-muted/40 p-3 text-xs space-y-1.5">
+                    <div className="eyebrow text-foreground">Connecting the actual domain</div>
+                    <p className="text-muted-foreground">
+                      This field only sets the URL used in metadata — it does <em>not</em> route DNS.
+                      To make <span className="font-mono">your-resort.com</span> actually serve this site,
+                      open <span className="font-medium text-foreground">Lovable → Project Settings → Domains</span>,
+                      then either <span className="font-medium text-foreground">Connect Domain</span> (point an A record to <span className="font-mono">185.158.133.1</span>)
+                      or <span className="font-medium text-foreground">Buy new domain</span>. SSL is provisioned automatically.
+                    </p>
+                  </div>
+                </div>
+
                 {isAdmin && onAdminPasskeyChange && (
                   <div className="space-y-2 pt-4 border-t border-border">
                     <Label className="eyebrow">Admin Passkey</Label>

@@ -38,7 +38,8 @@ export function ResortSEO({ resort }: Props) {
     const title = truncate(tagline ? `${name} — ${tagline}` : name, 60);
     const description = truncate(resort.description || tagline || `Discover ${name}.`, 155);
     const image = resort.images?.[0] || "";
-    const url = typeof window !== "undefined" ? window.location.origin + window.location.pathname : "";
+    const canonical = (resort.canonicalUrl || "").trim().replace(/\/+$/, "");
+    const url = canonical || (typeof window !== "undefined" ? window.location.origin + window.location.pathname : "");
 
     document.title = title;
     setMeta("name", "description", description);
