@@ -324,6 +324,8 @@ export interface ResortData {
   highlights?: HighlightItem[];
   restaurant?: Restaurant;
   experienceCategories?: ExperienceGroup[];
+  /** Public canonical URL for this resort (e.g. https://baia-palawan.com). Used for SEO + share links. */
+  canonicalUrl?: string;
 }
 
 export const DEFAULT_RESORT: ResortData = {
