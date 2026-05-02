@@ -16,7 +16,7 @@ const Index = () => {
   const {
     resort, setResort, theme, setTheme, onboarded, setOnboarded,
     settingsLoaded, isAdmin, setIsAdmin, resetResort, clearResort, publishNow, cloudStatus, lastSavedAt,
-    adminPasskey,
+    adminPasskey, setAdminPasskey,
   } = useResortStore();
   const [wizardOpen, setWizardOpen] = useState(!onboarded);
   const [gateOpen, setGateOpen] = useState(false);
