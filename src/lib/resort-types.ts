@@ -327,11 +327,11 @@ export interface ResortData {
 }
 
 export const DEFAULT_RESORT: ResortData = {
-  name: "Ultima Corfu",
-  location: "Corfu, Greece",
+  name: "BAIA Palawan Island Resort",
+  location: "Palawan, Philippines",
   tagline: "A paragon of barefoot Ionian luxury",
   description:
-    "Hewn into the blonde rock that plunges into the glittering Mediterranean, Ultima Corfu blends effortlessly into its dramatic waterfront setting. We love arriving here by boat, mooring at our private dock and allowing the villa to slowly unfurl. Poolside living is arguably what we do best at Ultima Corfu — but step inside and you’ll discover everything from your own private cinema to an exquisite mosaic-tiled hammam.",
+    "Tucked into a private cove on Palawan's emerald coastline, BAIA unfolds where limestone cliffs meet impossibly clear turquoise water. We love arriving by boat, drifting into our quiet bay and letting the resort reveal itself slowly. Days here move at the pace of the tide — long swims off the dock, lazy lunches under the palms, sunset rituals on the terrace — while inside you'll find everything from a spa carved into the rock to a candlelit dining pavilion above the sea.",
   amenities: ["Pool", "Spa", "Restaurant", "Hammam", "Cinema", "Private Dock", "Private Chef", "Concierge", "Jacuzzi", "Terrace"],
   images: [
     "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1600&q=80",
