@@ -969,6 +969,19 @@ export function OnboardingWizard({ open, initial, onComplete, onClose, startStep
                     );
                   })}
                 </div>
+
+                {isAdmin && onAdminPasskeyChange && (
+                  <div className="space-y-2 pt-4 border-t border-border">
+                    <Label className="eyebrow">Admin Passkey</Label>
+                    <p className="text-xs text-muted-foreground">Used to unlock admin mode on this site. Change it for each remixed project.</p>
+                    <Input
+                      value={adminPasskey ?? ""}
+                      onChange={(e) => onAdminPasskeyChange(e.target.value)}
+                      placeholder="e.g. 5309"
+                      className="max-w-xs"
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
