@@ -84,16 +84,16 @@ function mergeTheme(data: unknown): ThemeTweaks {
   return { ...DEFAULT_THEME, ...(data as Partial<ThemeTweaks>) };
 }
 
-function settingsSnapshot(resort: ResortData, theme: ThemeTweaks): string {
-  return JSON.stringify({ resort: sanitizeResort(resort), theme });
+function settingsSnapshot(resort: ResortData, theme: ThemeTweaks, passkey: string): string {
+  return JSON.stringify({ resort: sanitizeResort(resort), theme, passkey });
 }
 
-async function saveSettings(resort: ResortData, theme: ThemeTweaks) {
+async function saveSettings(resort: ResortData, theme: ThemeTweaks, passkey: string) {
   const cleanResort = sanitizeResort(resort);
   return supabase
     .from("resort_settings")
     .upsert(
-      [{ id: SETTINGS_ID, resort: cleanResort as never, theme: theme as never, updated_at: new Date().toISOString() }],
+      [{ id: SETTINGS_ID, resort: cleanResort as never, theme: theme as never, admin_passkey: passkey, updated_at: new Date().toISOString() }],
       { onConflict: "id" },
     );
 }
