@@ -8,6 +8,8 @@ const RESORT_KEY = "resort.data.v1";
 const THEME_KEY = "resort.theme.v1";
 const ONBOARDED_KEY = "resort.onboarded.v1";
 const ADMIN_KEY = "resort.admin.v1";
+const PASSKEY_KEY = "resort.passkey.v1";
+const DEFAULT_PASSKEY = "5309";
 const SETTINGS_ID = "singleton";
 
 function load<T>(key: string, fallback: T): T {
