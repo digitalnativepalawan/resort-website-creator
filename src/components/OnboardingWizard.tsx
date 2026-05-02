@@ -300,11 +300,11 @@ export function OnboardingWizard({ open, initial, onComplete, onClose, startStep
               <>
                 <div className="space-y-2">
                   <Label className="eyebrow">Resort Name</Label>
-                  <Input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="Ultima Corfu" />
+                  <Input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="BAIA Palawan Island Resort" />
                 </div>
                 <div className="space-y-2">
                   <Label className="eyebrow">Location</Label>
-                  <Input value={data.location} onChange={(e) => update("location", e.target.value)} placeholder="Corfu, Greece" />
+                  <Input value={data.location} onChange={(e) => update("location", e.target.value)} placeholder="Palawan, Philippines" />
                 </div>
                 <div className="space-y-2">
                   <Label className="eyebrow">Tagline</Label>
