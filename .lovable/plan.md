@@ -1,70 +1,101 @@
-# Plan
+## Goal
 
-## Part 1 — Hide the "Tweaks" button for public visitors
+Four changes to turn this template into a cleaner agency starting point:
 
-**Current behavior** (`src/pages/Index.tsx`):
-- When `isAdmin === false`, a floating Tweaks pill is rendered at the top-right of every visitor's screen.
-- When `isAdmin === true`, Tweaks is shown inline inside the Admin bar.
-
-**Desired behavior:**
-- Public visitors (published site, no admin) → no Tweaks button at all.
-- Admin only → Tweaks remains inline in the Admin bar (unchanged).
-- The hidden "click to open Admin Gate" entry point must remain reachable so the owner can still log in. Today that's wired through `onAdminClick` on `ResortSite` (e.g., footer/logo tap), so removing the floating Tweaks pill does not lock anyone out.
-
-### Change
-In `src/pages/Index.tsx`:
-- Remove the `{!isAdmin && (<div className="fixed top-3 right-3 z-40">{tweaks}</div>)}` block.
-- Keep the `tweaksSlot={tweaks}` inside `<AdminBar />` so admins still see it.
-- Leave `OnboardingWizard`, `AdminGate`, and `ResortSite` untouched.
-
-That's the entire code change — one block removed. No types, no store, no migrations.
+1. Rename mock data to **BAIA Palawan Island Resort**.
+2. Move the admin passkey **out of code** into the database (per-resort).
+3. Add a **duplicate-safety check** so freshly remixed projects start blank with the wizard open.
+4. Add **per-resort SEO** (dynamic title, description, OG image, JSON-LD).
 
 ---
 
-## Part 2 — Publishing with multiple sites / multiple owners (informational)
+## 1. Rebrand mock data
 
-This is **how Lovable works today**, not a code change. Summary so you can plan your rollout:
+In `src/lib/resort-types.ts` `DEFAULT_RESORT`, change only:
+- `name` → `"BAIA Palawan Island Resort"`
+- `location` → `"Palawan, Philippines"`
+- `tagline` → `"A barefoot island sanctuary on Palawan"`
+- `description` → new short paragraph about a Palawan island resort (cliffs, turquoise water, private cove). Keep length similar to current.
+- `contact.address` (line 191) → `"Palawan, Philippines"`
+- Wizard placeholders in `OnboardingWizard.tsx` lines 303/307 → `"BAIA Palawan Island Resort"` / `"Palawan, Philippines"`
 
-### One Lovable project = one published site
-Each Lovable project publishes to **one** URL at a time:
-- A free `*.lovable.app` subdomain (e.g. `resort-create-webapp.lovable.app`), and/or
-- One or more **custom domains** connected to that same project (you already have `palawan.merqato.digital` connected).
+Everything else (amenities, images, pricing, rooms, etc.) untouched.
 
-If you need a **second resort site**, you create a **second Lovable project** (Remix this one, or start fresh and copy). Each project gets its own publish URL and its own custom domain(s). They do **not** share a database — each project has its own Lovable Cloud backend, so resort A's edits never touch resort B.
+---
 
-### Multiple owners
-Two models, pick per project:
+## 2. Move admin passkey out of code
 
-1. **Workspace members** (recommended for an agency building many client sites)
-   - Project Settings → People → invite collaborators by email.
-   - Everyone in the workspace can edit the project in Lovable and publish it.
-   - Billing/credits are shared at the workspace level.
+**Storage:** add an `admin_passkey` column on `resort_settings` (text, default `"5309"` so existing projects keep working). Stored in the same singleton row as resort + theme. Public RLS already allows read/update of the singleton row — fine for this use case (the passkey is a soft gate, not a security boundary; the real protection is Lovable account access to the project).
 
-2. **Project transfer** (recommended when you hand a finished site to a client)
-   - Project Settings → Transfer → move the project to the client's Lovable account/workspace.
-   - They become the owner, manage their own billing, and connect their own domain.
-   - You lose edit access unless they re-invite you.
+**Wizard:** add a "Security" step (or a small field on the final step) where admin can set/change the passkey. Default shown is current value.
 
-### Custom domain per site
-- Each project supports its own custom domain via Project Settings → Domains.
-- You can either **connect** a domain you already own (add A record `185.158.133.1` for `@` and `www`, plus the `_lovable` TXT verification record) or **buy a new domain** directly inside Lovable on a paid plan.
-- A domain can only be active on one project at a time. To move it to a different site, remove it from the old project first, then connect it to the new one (you re-prove ownership).
-- Lovable provisions SSL automatically once DNS verifies.
+**AdminGate:** read passkey from `useResortStore()` instead of the hardcoded `ADMIN_PASSKEY` constant. Remove the constant.
 
-### Recommended setup for your case (multiple resorts, possibly multiple owners)
-```text
-Workspace (you)
-├── Project: Palawan Resort   → palawan.merqato.digital
-├── Project: Resort #2        → resort2.yourdomain.com
-└── Project: Resort #3        → *.lovable.app (until they buy a domain)
+**Migration:**
+```sql
+ALTER TABLE public.resort_settings
+  ADD COLUMN admin_passkey text NOT NULL DEFAULT '5309';
 ```
-- Build each new resort by **Remixing** this project so it inherits the editor/onboarding system, then run onboarding to fill in that resort's content.
-- If a specific client should own their site, **Transfer** that single project to them after launch; the others stay in your workspace.
-- Frontend changes require clicking **Publish → Update** to go live; backend changes (DB, edge functions) deploy automatically.
+
+Store also surfaces `adminPasskey` / `setAdminPasskey` and includes it in the cloud save payload.
+
+---
+
+## 3. Duplicate-safety on remix
+
+**Problem:** when this project is remixed, the new project gets a fresh empty Lovable Cloud DB but the remixer's browser may still have `localStorage` from the original (`resort.onboarded.v1 = "1"`, cached `resort.data.v1`), so the wizard doesn't open and they see stale data flicker.
+
+**Fix:** detect "fresh project, no cloud row yet" and reset local state.
+
+In `useResortStore`, after the initial cloud load:
+- If the `resort_settings` row does **not** exist (the `.maybeSingle()` returns `data === null`), treat this as a brand-new project:
+  - Clear `resort.data.v1`, `resort.theme.v1`, `resort.onboarded.v1`, `resort.admin.v1` from localStorage.
+  - `setResort(EMPTY_RESORT)`, `setOnboarded(false)`.
+  - This causes `Index.tsx` to open the wizard automatically (already does when `!onboarded`).
+- Also insert a placeholder singleton row immediately so subsequent visitors don't re-trigger the reset.
+
+No change needed to `Index.tsx` — wizard already opens when `!onboarded`.
+
+---
+
+## 4. Per-resort SEO
+
+Create `src/components/ResortSEO.tsx` that uses `useEffect` to update the document head from `resort` data (no extra dep needed — direct DOM updates):
+
+- `<title>` → `${resort.name} — ${resort.tagline}` (truncated to 60 chars)
+- `<meta name="description">` → `resort.description` truncated to 155 chars
+- `<meta property="og:title">`, `og:description`, `og:image` (first image), `og:type=website`
+- `<meta name="twitter:card">` = `summary_large_image`, twitter:title/description/image
+- `<link rel="canonical">` → `window.location.origin + window.location.pathname`
+- JSON-LD `<script type="application/ld+json">` with `LodgingBusiness` schema:
+  ```json
+  {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    "name": ..., "description": ..., "image": [...],
+    "address": { "@type": "PostalAddress", "addressLocality": resort.location },
+    "telephone": resort.contact.phone,
+    "email": resort.contact.email,
+    "url": window.location.origin,
+    "priceRange": ...
+  }
+  ```
+
+Mount `<ResortSEO resort={resort} />` once inside `Index.tsx`. Updates reactively whenever resort data changes.
+
+Also update `index.html` defaults (title/description) to a generic "Resort site — built on Lovable" fallback so the pre-hydration HTML isn't `merqato.digital`.
 
 ---
 
 ## Files touched
-- `src/pages/Index.tsx` — remove the public-facing floating Tweaks pill.
 
-No database, storage, or RLS changes. No risk to the data work already stabilized.
+- `src/lib/resort-types.ts` — rebrand defaults
+- `src/components/OnboardingWizard.tsx` — placeholders + passkey field
+- `src/components/AdminGate.tsx` — read passkey from store
+- `src/hooks/useResortStore.ts` — passkey state + duplicate-safety reset
+- `src/components/ResortSEO.tsx` — new
+- `src/pages/Index.tsx` — mount `ResortSEO`
+- `index.html` — generic defaults
+- DB migration: add `admin_passkey` column
+
+No edge functions. No auth changes.

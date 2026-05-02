@@ -8,6 +8,8 @@ const RESORT_KEY = "resort.data.v1";
 const THEME_KEY = "resort.theme.v1";
 const ONBOARDED_KEY = "resort.onboarded.v1";
 const ADMIN_KEY = "resort.admin.v1";
+const PASSKEY_KEY = "resort.passkey.v1";
+const DEFAULT_PASSKEY = "5309";
 const SETTINGS_ID = "singleton";
 
 function load<T>(key: string, fallback: T): T {
@@ -82,16 +84,16 @@ function mergeTheme(data: unknown): ThemeTweaks {
   return { ...DEFAULT_THEME, ...(data as Partial<ThemeTweaks>) };
 }
 
-function settingsSnapshot(resort: ResortData, theme: ThemeTweaks): string {
-  return JSON.stringify({ resort: sanitizeResort(resort), theme });
+function settingsSnapshot(resort: ResortData, theme: ThemeTweaks, passkey: string): string {
+  return JSON.stringify({ resort: sanitizeResort(resort), theme, passkey });
 }
 
-async function saveSettings(resort: ResortData, theme: ThemeTweaks) {
+async function saveSettings(resort: ResortData, theme: ThemeTweaks, passkey: string) {
   const cleanResort = sanitizeResort(resort);
   return supabase
     .from("resort_settings")
     .upsert(
-      [{ id: SETTINGS_ID, resort: cleanResort as never, theme: theme as never, updated_at: new Date().toISOString() }],
+      [{ id: SETTINGS_ID, resort: cleanResort as never, theme: theme as never, admin_passkey: passkey, updated_at: new Date().toISOString() }],
       { onConflict: "id" },
     );
 }
@@ -99,6 +101,9 @@ async function saveSettings(resort: ResortData, theme: ThemeTweaks) {
 export function useResortStore() {
   const [resort, setResort] = useState<ResortData>(() => load(RESORT_KEY, DEFAULT_RESORT));
   const [theme, setTheme] = useState<ThemeTweaks>(() => load(THEME_KEY, DEFAULT_THEME));
+  const [adminPasskey, setAdminPasskeyState] = useState<string>(() => {
+    try { return localStorage.getItem(PASSKEY_KEY) || DEFAULT_PASSKEY; } catch { return DEFAULT_PASSKEY; }
+  });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [onboarded, setOnboarded] = useState<boolean>(() => {
     try { return localStorage.getItem(ONBOARDED_KEY) === "1"; } catch { return false; }
@@ -107,14 +112,19 @@ export function useResortStore() {
     try { return localStorage.getItem(ADMIN_KEY) === "1"; } catch { return false; }
   });
 
-  // Track whether we've finished the initial cloud load before we start writing back.
   const hydratedRef = useRef(false);
   const lastCloudSnapshotRef = useRef("");
   const resortRef = useRef(resort);
   const themeRef = useRef(theme);
+  const passkeyRef = useRef(adminPasskey);
 
   useEffect(() => { resortRef.current = resort; }, [resort]);
   useEffect(() => { themeRef.current = theme; }, [theme]);
+  useEffect(() => { passkeyRef.current = adminPasskey; }, [adminPasskey]);
+
+  const setAdminPasskey = useCallback((v: string) => {
+    setAdminPasskeyState(v);
+  }, []);
 
   // Initial load from cloud
   useEffect(() => {
@@ -123,7 +133,7 @@ export function useResortStore() {
       try {
         const { data, error } = await supabase
           .from("resort_settings")
-          .select("resort, theme")
+          .select("resort, theme, admin_passkey")
           .eq("id", SETTINGS_ID)
           .maybeSingle();
         if (cancelled) return;
@@ -132,7 +142,8 @@ export function useResortStore() {
         } else if (data) {
           const nextResort = isNonEmpty(data.resort) ? mergeResort(data.resort) : resortRef.current;
           const nextTheme = isNonEmpty(data.theme) ? mergeTheme(data.theme) : themeRef.current;
-          lastCloudSnapshotRef.current = settingsSnapshot(nextResort, nextTheme);
+          const nextPasskey = (data as { admin_passkey?: string }).admin_passkey || DEFAULT_PASSKEY;
+          lastCloudSnapshotRef.current = settingsSnapshot(nextResort, nextTheme, nextPasskey);
           if (isNonEmpty(data.resort)) {
             setResort(nextResort);
             setOnboarded(true);
@@ -140,6 +151,24 @@ export function useResortStore() {
           if (isNonEmpty(data.theme)) {
             setTheme(nextTheme);
           }
+          setAdminPasskeyState(nextPasskey);
+        } else {
+          // Fresh project (e.g. just remixed) — purge any stale localStorage from the original.
+          try {
+            localStorage.removeItem(RESORT_KEY);
+            localStorage.removeItem(THEME_KEY);
+            localStorage.removeItem(ONBOARDED_KEY);
+            localStorage.removeItem(ADMIN_KEY);
+            localStorage.removeItem(PASSKEY_KEY);
+          } catch {}
+          setResort(EMPTY_RESORT);
+          setTheme(DEFAULT_THEME);
+          setAdminPasskeyState(DEFAULT_PASSKEY);
+          setOnboarded(false);
+          setIsAdmin(false);
+          // Seed singleton row so subsequent visitors don't trigger another reset.
+          await saveSettings(EMPTY_RESORT, DEFAULT_THEME, DEFAULT_PASSKEY);
+          lastCloudSnapshotRef.current = settingsSnapshot(EMPTY_RESORT, DEFAULT_THEME, DEFAULT_PASSKEY);
         }
       } catch (e) {
         console.error("[resort] cloud load failed", e);
@@ -149,18 +178,18 @@ export function useResortStore() {
       }
     })();
 
-    // Realtime: keep other devices in sync
     const channel = supabase
       .channel("resort_settings_changes")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "resort_settings", filter: `id=eq.${SETTINGS_ID}` },
         (payload) => {
-          const row = (payload.new ?? payload.old) as { resort?: unknown; theme?: unknown } | null;
+          const row = (payload.new ?? payload.old) as { resort?: unknown; theme?: unknown; admin_passkey?: string } | null;
           if (!row) return;
           const nextResort = isNonEmpty(row.resort) ? mergeResort(row.resort) : resortRef.current;
           const nextTheme = isNonEmpty(row.theme) ? mergeTheme(row.theme) : themeRef.current;
-          lastCloudSnapshotRef.current = settingsSnapshot(nextResort, nextTheme);
+          const nextPasskey = row.admin_passkey || passkeyRef.current || DEFAULT_PASSKEY;
+          lastCloudSnapshotRef.current = settingsSnapshot(nextResort, nextTheme, nextPasskey);
           if (isNonEmpty(row.resort)) {
             setResort(nextResort);
             setOnboarded(true);
@@ -168,6 +197,7 @@ export function useResortStore() {
           if (isNonEmpty(row.theme)) {
             setTheme(nextTheme);
           }
+          if (row.admin_passkey) setAdminPasskeyState(nextPasskey);
         },
       )
       .subscribe();
@@ -178,29 +208,26 @@ export function useResortStore() {
     };
   }, []);
 
-  // Persist resort: localStorage cache + debounced cloud save
-  useEffect(() => {
-    localStorage.setItem(RESORT_KEY, JSON.stringify(resort));
-  }, [resort]);
+  useEffect(() => { localStorage.setItem(RESORT_KEY, JSON.stringify(resort)); }, [resort]);
 
-  // Persist theme: localStorage cache + apply
   useEffect(() => {
     localStorage.setItem(THEME_KEY, JSON.stringify(theme));
     applyTheme(theme);
   }, [theme]);
 
+  useEffect(() => { localStorage.setItem(PASSKEY_KEY, adminPasskey); }, [adminPasskey]);
+
   const [cloudStatus, setCloudStatus] = useState<"idle" | "pending" | "saving" | "saved" | "error" | "blocked">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
-  // Persist the complete settings row so resort and theme never overwrite each other.
   useEffect(() => {
     if (!hydratedRef.current) return;
-    const snapshot = settingsSnapshot(resort, theme);
+    const snapshot = settingsSnapshot(resort, theme, adminPasskey);
     if (snapshot === lastCloudSnapshotRef.current) return;
     setCloudStatus((s) => (s === "blocked" ? s : "pending"));
     const t = setTimeout(async () => {
       setCloudStatus((s) => (s === "blocked" ? s : "saving"));
-      const { error } = await saveSettings(resort, theme);
+      const { error } = await saveSettings(resort, theme, adminPasskey);
       if (error) {
         console.error("[resort] cloud save error", error);
         setCloudStatus("error");
@@ -211,23 +238,23 @@ export function useResortStore() {
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [resort, theme]);
+  }, [resort, theme, adminPasskey]);
 
   useEffect(() => { localStorage.setItem(ONBOARDED_KEY, onboarded ? "1" : "0"); }, [onboarded]);
   useEffect(() => { localStorage.setItem(ADMIN_KEY, isAdmin ? "1" : "0"); }, [isAdmin]);
 
   const [cloudWriteBlocked] = useState(false);
 
-  const publishNow = useCallback(async (nextResort = resortRef.current, nextTheme = themeRef.current) => {
+  const publishNow = useCallback(async (nextResort = resortRef.current, nextTheme = themeRef.current, nextPasskey = passkeyRef.current) => {
     setCloudStatus("saving");
-    const { error } = await saveSettings(nextResort, nextTheme);
+    const { error } = await saveSettings(nextResort, nextTheme, nextPasskey);
     if (error) {
       console.error("[resort] publish failed", error);
       setCloudStatus("error");
       toast.error("Publish failed", { description: error.message });
       return false;
     }
-    lastCloudSnapshotRef.current = settingsSnapshot(nextResort, nextTheme);
+    lastCloudSnapshotRef.current = settingsSnapshot(nextResort, nextTheme, nextPasskey);
     setCloudStatus("saved");
     setLastSavedAt(Date.now());
     toast.success("Published", { description: "Your site is live with the latest changes." });
@@ -237,5 +264,5 @@ export function useResortStore() {
   const resetResort = () => setResort(DEFAULT_RESORT);
   const clearResort = () => setResort(EMPTY_RESORT);
 
-  return { resort, setResort, theme, setTheme, settingsLoaded, onboarded, setOnboarded, isAdmin, setIsAdmin, resetResort, clearResort, publishNow, cloudWriteBlocked, cloudStatus, lastSavedAt };
+  return { resort, setResort, theme, setTheme, adminPasskey, setAdminPasskey, settingsLoaded, onboarded, setOnboarded, isAdmin, setIsAdmin, resetResort, clearResort, publishNow, cloudWriteBlocked, cloudStatus, lastSavedAt };
 }

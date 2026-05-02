@@ -16,18 +16,21 @@ export type Database = {
     Tables: {
       resort_settings: {
         Row: {
+          admin_passkey: string
           id: string
           resort: Json
           theme: Json
           updated_at: string
         }
         Insert: {
+          admin_passkey?: string
           id?: string
           resort?: Json
           theme?: Json
           updated_at?: string
         }
         Update: {
+          admin_passkey?: string
           id?: string
           resort?: Json
           theme?: Json

@@ -28,6 +28,9 @@ interface Props {
   submitLabel?: string;
   autoPublish?: boolean;
   onAutoPublishChange?: (v: boolean) => void;
+  isAdmin?: boolean;
+  adminPasskey?: string;
+  onAdminPasskeyChange?: (v: string) => void;
 }
 
 const STEPS = ["Basic Info", "Description", "Amenities", "Images & Pricing", "Highlights", "Rooms", "Video Tour", "FAQ", "Map", "Restaurant", "Experiences", "Section Order", "Contact"];
@@ -212,7 +215,7 @@ function UploadProgressList({ items, onClear }: { items: UploadItem[]; onClear?:
   );
 }
 
-export function OnboardingWizard({ open, initial, onComplete, onClose, startStep, submitLabel, autoPublish, onAutoPublishChange }: Props) {
+export function OnboardingWizard({ open, initial, onComplete, onClose, startStep, submitLabel, autoPublish, onAutoPublishChange, isAdmin, adminPasskey, onAdminPasskeyChange }: Props) {
   const [step, setStep] = useState(startStep ?? 0);
   const [data, setData] = useState<ResortData>(initial);
   const [imageUrl, setImageUrl] = useState("");
@@ -300,11 +303,11 @@ export function OnboardingWizard({ open, initial, onComplete, onClose, startStep
               <>
                 <div className="space-y-2">
                   <Label className="eyebrow">Resort Name</Label>
-                  <Input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="Ultima Corfu" />
+                  <Input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="BAIA Palawan Island Resort" />
                 </div>
                 <div className="space-y-2">
                   <Label className="eyebrow">Location</Label>
-                  <Input value={data.location} onChange={(e) => update("location", e.target.value)} placeholder="Corfu, Greece" />
+                  <Input value={data.location} onChange={(e) => update("location", e.target.value)} placeholder="Palawan, Philippines" />
                 </div>
                 <div className="space-y-2">
                   <Label className="eyebrow">Tagline</Label>
@@ -966,6 +969,19 @@ export function OnboardingWizard({ open, initial, onComplete, onClose, startStep
                     );
                   })}
                 </div>
+
+                {isAdmin && onAdminPasskeyChange && (
+                  <div className="space-y-2 pt-4 border-t border-border">
+                    <Label className="eyebrow">Admin Passkey</Label>
+                    <p className="text-xs text-muted-foreground">Used to unlock admin mode on this site. Change it for each remixed project.</p>
+                    <Input
+                      value={adminPasskey ?? ""}
+                      onChange={(e) => onAdminPasskeyChange(e.target.value)}
+                      placeholder="e.g. 5309"
+                      className="max-w-xs"
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>

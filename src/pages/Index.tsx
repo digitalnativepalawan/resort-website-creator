@@ -7,6 +7,7 @@ import { AdminGate } from "@/components/AdminGate";
 import { AdminBar } from "@/components/AdminBar";
 import { useToast } from "@/hooks/use-toast";
 import { I18nContext, LangCode } from "@/lib/i18n";
+import { ResortSEO } from "@/components/ResortSEO";
 
 const LANG_KEY = "resort.lang.v1";
 const AUTO_PUBLISH_KEY = "resort.autopublish.v1";
@@ -15,6 +16,7 @@ const Index = () => {
   const {
     resort, setResort, theme, setTheme, onboarded, setOnboarded,
     settingsLoaded, isAdmin, setIsAdmin, resetResort, clearResort, publishNow, cloudStatus, lastSavedAt,
+    adminPasskey, setAdminPasskey,
   } = useResortStore();
   const [wizardOpen, setWizardOpen] = useState(!onboarded);
   const [gateOpen, setGateOpen] = useState(false);
@@ -87,6 +89,8 @@ const Index = () => {
           />
         )}
 
+        <ResortSEO resort={resort} />
+
         <div className={isAdmin ? "pt-11" : ""}>
           <ResortSite resort={resort} onAdminClick={handleAdminClick} />
         </div>
@@ -99,12 +103,16 @@ const Index = () => {
           submitLabel={isAdmin ? "Save Changes" : undefined}
           autoPublish={autoPublish}
           onAutoPublishChange={setAutoPublish}
+          isAdmin={isAdmin}
+          adminPasskey={adminPasskey}
+          onAdminPasskeyChange={setAdminPasskey}
         />
 
         <AdminGate
           open={gateOpen}
           onClose={() => setGateOpen(false)}
           onUnlock={() => { setIsAdmin(true); setGateOpen(false); }}
+          passkey={adminPasskey}
         />
       </div>
     </I18nContext.Provider>

@@ -1,0 +1,1 @@
+ALTER TABLE public.resort_settings ADD COLUMN IF NOT EXISTS admin_passkey text NOT NULL DEFAULT '5309';
