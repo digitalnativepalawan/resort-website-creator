@@ -89,6 +89,8 @@ const Index = () => {
           />
         )}
 
+        <ResortSEO resort={resort} />
+
         <div className={isAdmin ? "pt-11" : ""}>
           <ResortSite resort={resort} onAdminClick={handleAdminClick} />
         </div>
@@ -107,6 +109,7 @@ const Index = () => {
           open={gateOpen}
           onClose={() => setGateOpen(false)}
           onUnlock={() => { setIsAdmin(true); setGateOpen(false); }}
+          passkey={adminPasskey}
         />
       </div>
     </I18nContext.Provider>
