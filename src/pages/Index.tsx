@@ -103,6 +103,9 @@ const Index = () => {
           submitLabel={isAdmin ? "Save Changes" : undefined}
           autoPublish={autoPublish}
           onAutoPublishChange={setAutoPublish}
+          isAdmin={isAdmin}
+          adminPasskey={adminPasskey}
+          onAdminPasskeyChange={setAdminPasskey}
         />
 
         <AdminGate
