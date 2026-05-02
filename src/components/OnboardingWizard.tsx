@@ -215,7 +215,7 @@ function UploadProgressList({ items, onClear }: { items: UploadItem[]; onClear?:
   );
 }
 
-export function OnboardingWizard({ open, initial, onComplete, onClose, startStep, submitLabel, autoPublish, onAutoPublishChange }: Props) {
+export function OnboardingWizard({ open, initial, onComplete, onClose, startStep, submitLabel, autoPublish, onAutoPublishChange, isAdmin, adminPasskey, onAdminPasskeyChange }: Props) {
   const [step, setStep] = useState(startStep ?? 0);
   const [data, setData] = useState<ResortData>(initial);
   const [imageUrl, setImageUrl] = useState("");
