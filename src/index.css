@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Resort design tokens — cream/beige + navy + gold */
+    --background: 36 22% 95%;          /* #f5f3f0 cream */
+    --foreground: 205 28% 20%;
+    --surface: 36 30% 97%;
+    --surface-2: 36 18% 91%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 205 28% 20%;
+
+    --popover: 36 30% 97%;
+    --popover-foreground: 205 28% 20%;
+
+    --primary: 204 28% 33%;            /* #3d5a6c navy */
+    --primary-foreground: 36 30% 97%;
+
+    --accent: 30 41% 68%;              /* #d4af86 gold */
+    --accent-foreground: 205 28% 20%;
+
+    --secondary: 36 18% 88%;
+    --secondary-foreground: 205 28% 20%;
+
+    --muted: 36 18% 90%;
+    --muted-foreground: 205 12% 40%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 36 30% 97%;
+
+    --border: 30 18% 80%;
+    --input: 30 18% 80%;
+    --ring: 204 28% 33%;
+
+    --radius: 0.25rem;
+
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Inter', system-ui, sans-serif;
+
+    --shadow-soft: 0 1px 2px hsl(205 28% 20% / 0.04), 0 8px 24px hsl(205 28% 20% / 0.06);
+    --shadow-card: 0 1px 0 hsl(30 18% 80% / 0.6), 0 12px 40px hsl(205 28% 20% / 0.08);
+
+    --sidebar-background: 36 22% 95%;
+    --sidebar-foreground: 205 28% 20%;
+    --sidebar-primary: 204 28% 33%;
+    --sidebar-primary-foreground: 36 30% 97%;
+    --sidebar-accent: 36 18% 88%;
+    --sidebar-accent-foreground: 205 28% 20%;
+    --sidebar-border: 30 18% 80%;
+    --sidebar-ring: 204 28% 33%;
+  }
+
+  .dark {
+    --background: 205 28% 10%;
+    --foreground: 36 30% 95%;
+    --card: 205 28% 12%;
+    --card-foreground: 36 30% 95%;
+    --primary: 30 41% 68%;
+    --primary-foreground: 205 28% 10%;
+    --border: 205 18% 22%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html, body, #root { @apply bg-background text-foreground; }
+  body {
+    font-family: var(--font-sans);
+    font-weight: 300;
+    letter-spacing: 0.01em;
+  }
+  h1, h2, h3, h4, h5, .font-serif {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply uppercase tracking-[0.25em] text-xs text-muted-foreground;
+  }
+  .hairline {
+    @apply h-px w-12 bg-accent;
+  }
+  .btn-ghost-link {
+    @apply inline-flex items-center gap-2 uppercase tracking-[0.2em] text-xs border-b border-foreground/40 pb-1 hover:border-accent hover:text-accent transition-colors;
+  }
+}

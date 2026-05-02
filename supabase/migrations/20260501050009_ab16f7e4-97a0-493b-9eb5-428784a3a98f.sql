@@ -1,0 +1,1 @@
+drop policy if exists "Public can view resort images" on storage.objects;
