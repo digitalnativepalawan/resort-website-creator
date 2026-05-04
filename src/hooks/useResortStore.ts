@@ -153,7 +153,7 @@ export function useResortStore() {
           lastCloudSnapshotRef.current = settingsSnapshot(nextResort, nextTheme, nextPasskey);
           if (isNonEmpty(data.resort)) {
             setResort(nextResort);
-            setOnboarded(true);
+            setOnboarded(isConfiguredResort(data.resort));
           }
           if (isNonEmpty(data.theme)) {
             setTheme(nextTheme);
