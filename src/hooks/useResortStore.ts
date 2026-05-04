@@ -57,6 +57,13 @@ function isNonEmpty(obj: unknown): boolean {
   return !!obj && typeof obj === "object" && Object.keys(obj as object).length > 0;
 }
 
+/** A resort row counts as "configured" only if it has real content (a name). */
+function isConfiguredResort(obj: unknown): boolean {
+  if (!obj || typeof obj !== "object") return false;
+  const name = (obj as { name?: unknown }).name;
+  return typeof name === "string" && name.trim().length > 0;
+}
+
 const ACTIVE_SECTION_IDS = new Set<string>(DEFAULT_SECTION_ORDER);
 
 /** Strip obsolete fields and normalize sectionOrder so stale data can't re-enter the database. */
