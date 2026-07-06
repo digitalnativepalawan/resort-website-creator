@@ -139,9 +139,11 @@ const Index = () => {
           isAdmin={isAdmin}
           adminPasskey={adminPasskey}
           onAdminPasskeyChange={setAdminPasskey}
-        />
+        animationPreset={animPreset}
+                  onAnimationPresetChange={setAnim}
+                />
 
-        <AdminGate
+                <AdminGate
           open={gateOpen}
           onClose={() => setGateOpen(false)}
           onUnlock={() => { setIsAdmin(true); setGateOpen(false); }}

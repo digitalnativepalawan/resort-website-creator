@@ -29,11 +29,13 @@ interface Props {
   autoPublish?: boolean;
   onAutoPublishChange?: (v: boolean) => void;
   isAdmin?: boolean;
-  adminPasskey?: string;
-  onAdminPasskeyChange?: (v: string) => void;
-}
+    adminPasskey?: string;
+    onAdminPasskeyChange?: (v: string) => void;
+    animationPreset?: "none" | "subtle" | "cinematic";
+    onAnimationPresetChange?: (v: "none" | "subtle" | "cinematic") => void;
+  }
 
-const STEPS = ["Basic Info", "Description", "Amenities", "Images & Pricing", "Highlights", "Rooms", "Video Tour", "FAQ", "Map", "Restaurant", "Experiences", "Section Order", "Contact"];
+const STEPS = ["Basic Info", "Description", "Amenities", "Images & Pricing", "Highlights", "Rooms", "Video Tour", "FAQ", "Map", "Restaurant", "Experiences", "Section Order", "Contact", "Style"];
 
 const SECTION_LABEL: Record<SectionId, string> = {
   overview: "Overview & Hero",
@@ -215,7 +217,7 @@ function UploadProgressList({ items, onClear }: { items: UploadItem[]; onClear?:
   );
 }
 
-export function OnboardingWizard({ open, initial, onComplete, onClose, startStep, submitLabel, autoPublish, onAutoPublishChange, isAdmin, adminPasskey, onAdminPasskeyChange }: Props) {
+export function OnboardingWizard({ open, initial, onComplete, onClose, startStep, submitLabel, autoPublish, onAutoPublishChange, isAdmin, adminPasskey, onAdminPasskeyChange, animationPreset, onAnimationPresetChange }: Props) {
   const [step, setStep] = useState(startStep ?? 0);
   const [data, setData] = useState<ResortData>(initial);
   const [imageUrl, setImageUrl] = useState("");
@@ -1006,11 +1008,45 @@ export function OnboardingWizard({ open, initial, onComplete, onClose, startStep
                     />
                   </div>
                 )}
-              </div>
-            )}
-          </div>
+                              </div>
+                            )}
+                            {step === 13 && onAnimationPresetChange && (
+                              <div className="space-y-4">
+                                <p className="text-sm text-muted-foreground">Choose how your site animates as visitors scroll.</p>
+                                <div className="flex flex-col gap-2">
+                                  {([
+                                    { value: "none", label: "None", desc: "No animation — static layout" },
+                                    { value: "subtle", label: "Subtle", desc: "Sections fade in as you scroll" },
+                                    { value: "cinematic", label: "Cinematic", desc: "Staggered reveals with parallax hero" },
+                                  ] as const).map((p) => (
+                                    <label
+                                      key={p.value}
+                                      className={`flex items-center gap-3 px-3 py-2.5 border cursor-pointer transition-colors ${
+                                        (animationPreset || "none") === p.value
+                                          ? "border-accent bg-accent/5"
+                                          : "border-border hover:border-accent/50"
+                                      }`}
+                                    >
+                                      <input
+                                        type="radio"
+                                        name="animWizard"
+                                        value={p.value}
+                                        checked={(animationPreset || "none") === p.value}
+                                        onChange={() => onAnimationPresetChange(p.value)}
+                                        className="sr-only"
+                                      />
+                                      <div className="flex-1">
+                                        <div className="text-sm font-medium">{p.label}</div>
+                                        <div className="text-[10px] text-muted-foreground">{p.desc}</div>
+                                      </div>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
 
-          <div className="flex flex-col gap-3 pt-4 border-t border-border sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-col gap-3 pt-4 border-t border-border sm:flex-row sm:items-center sm:justify-between">
             {step === STEPS.length - 1 && onAutoPublishChange ? (
               <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
                 <Checkbox
