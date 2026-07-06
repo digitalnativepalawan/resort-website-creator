@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState, ImgHTMLAttributes } from "react";
 import { useI18n, LANGUAGES, LangCode } from "@/lib/i18n";
+import { MotionSection } from "@/components/MotionSection";
 
 // Image with automatic placeholder fallback when src fails to load.
 function ImageWithFallback({ src, alt, fallbackLabel, className, ...rest }: ImgHTMLAttributes<HTMLImageElement> & { fallbackLabel?: string }) {
@@ -723,7 +724,11 @@ export function ResortSite({ resort, onAdminClick }: { resort: ResortData; onAdm
             </section>
           ),
         };
-        return order.map((id) => renderers[id]?.());
+                return order.map((id, i) => (
+                  <MotionSection key={id} preset={resort.animationPreset} index={i}>
+                    {renderers[id]?.()}
+                  </MotionSection>
+                ));
       })()}
 
       {/* FOOTER */}

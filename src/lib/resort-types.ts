@@ -326,6 +326,8 @@ export interface ResortData {
   experienceCategories?: ExperienceGroup[];
   /** Public canonical URL for this resort (e.g. https://baia-palawan.com). Used for SEO + share links. */
   canonicalUrl?: string;
+  /** Scroll animation preset. "none" = static (default), "subtle" = fade-up on scroll, "cinematic" = staggered + parallax. */
+  animationPreset?: "none" | "subtle" | "cinematic";
 }
 
 export const DEFAULT_RESORT: ResortData = {

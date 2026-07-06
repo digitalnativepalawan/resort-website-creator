@@ -89,4 +89,37 @@
   .btn-ghost-link {
     @apply inline-flex items-center gap-2 uppercase tracking-[0.2em] text-xs border-b border-foreground/40 pb-1 hover:border-accent hover:text-accent transition-colors;
   }
+
+  /* ── Motion utilities ── */
+  .motion-cinematic > * {
+    opacity: 0;
+    animation: fade-up 0.7s ease-out forwards;
+  }
+  .motion-cinematic > *:nth-child(1) { animation-delay: 0ms; }
+  .motion-cinematic > *:nth-child(2) { animation-delay: 100ms; }
+  .motion-cinematic > *:nth-child(3) { animation-delay: 200ms; }
+  .motion-cinematic > *:nth-child(4) { animation-delay: 300ms; }
+  .motion-cinematic > *:nth-child(5) { animation-delay: 400ms; }
+
+  .hero-parallax-container {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-parallax-target {
+    transform: translateY(0);
+    will-change: transform;
+    transition: transform 0.1s linear;
+  }
+
+  /* Reduced motion fallback — strip all animation & parallax */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .motion-cinematic > * {
+      animation: none !important;
+      opacity: 1 !important;
+    }
+    .hero-parallax-target {
+      transform: none !important;
+    }
+  }
 }

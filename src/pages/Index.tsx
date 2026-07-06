@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useResortStore, applyTheme } from "@/hooks/useResortStore";
+import type { AnimationPreset } from "@/hooks/useScrollReveal";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { ResortSite } from "@/components/ResortSite";
 import { TweaksPanel } from "@/components/TweaksPanel";
@@ -11,6 +12,8 @@ import { ResortSEO } from "@/components/ResortSEO";
 
 const LANG_KEY = "resort.lang.v1";
 const AUTO_PUBLISH_KEY = "resort.autopublish.v1";
+const ANIMATION_KEY = "resort.anim.v1";
+const TWEAKS_SHOWN_KEY = "resort.tweaks.shown.v1";
 
 const Index = () => {
   const {
@@ -34,6 +37,17 @@ const Index = () => {
     setAutoPublishState(v);
     try { localStorage.setItem(AUTO_PUBLISH_KEY, v ? "1" : "0"); } catch {}
   };
+  const [animPreset, setAnimPreset] = useState<AnimationPreset>(() => {
+    try { return (localStorage.getItem(ANIMATION_KEY) as AnimationPreset) || "none"; } catch { return "none"; }
+  });
+  const setAnim = (v: AnimationPreset) => {
+    setAnimPreset(v);
+    try { localStorage.setItem(ANIMATION_KEY, v); } catch {}
+  };
+  const [tweaksShown, setTweaksShown] = useState<boolean>(() => {
+    try { return localStorage.getItem(TWEAKS_SHOWN_KEY) === "1"; } catch { return false; }
+  });
+  const [tweaksAutoOpen, setTweaksAutoOpen] = useState(false);
   const { toast } = useToast();
 
   // Apply persisted theme on first paint
@@ -48,7 +62,14 @@ const Index = () => {
     setResort(data);
     setOnboarded(true);
     setWizardOpen(false);
-    if (isAdmin) toast({ title: "Saved", description: "Site updated." });
+    if (isAdmin) {
+      toast({ title: "Saved", description: "Site updated." });
+    } else if (!tweaksShown) {
+      // First-time onboarding — open TweaksPanel so user discovers motion/style settings
+      setTweaksAutoOpen(true);
+      setTweaksShown(true);
+      try { localStorage.setItem(TWEAKS_SHOWN_KEY, "1"); } catch {}
+    }
     if (autoPublish) {
       void publishNow(data, theme);
     }
@@ -63,15 +84,20 @@ const Index = () => {
   };
 
   const tweaks = (
-    <TweaksPanel
-      theme={theme}
-      setTheme={setTheme}
-      currency={resort.currency}
-      setCurrency={(c) => setResort({ ...resort, currency: c })}
-      onRestart={() => setWizardOpen(true)}
-      variant={isAdmin ? "inline" : "floating"}
-    />
-  );
+      <TweaksPanel
+        theme={theme}
+        setTheme={setTheme}
+        currency={resort.currency}
+        setCurrency={(c) => setResort({ ...resort, currency: c })}
+        onRestart={() => setWizardOpen(true)}
+        variant={isAdmin ? "inline" : "floating"}
+        animationPreset={animPreset}
+        setAnimationPreset={setAnim}
+        defaultOpen={tweaksAutoOpen}
+      />
+    );
+
+    const resortData = { ...resort, animationPreset: animPreset };
 
   return (
     <I18nContext.Provider value={{ lang, setLang }}>
@@ -89,10 +115,10 @@ const Index = () => {
           />
         )}
 
-        <ResortSEO resort={resort} />
+        <ResortSEO resort={resortData} />
 
         <div className={isAdmin ? "pt-11" : ""}>
-          <ResortSite resort={resort} onAdminClick={handleAdminClick} />
+          <ResortSite resort={resortData} onAdminClick={handleAdminClick} />
         </div>
 
         <OnboardingWizard
