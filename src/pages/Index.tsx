@@ -58,7 +58,6 @@ const Index = () => {
   }, [settingsLoaded, onboarded]);
 
   const handleComplete = (data: typeof resort) => {
-    // Update preview immediately so the user sees the change before the network call.
     setResort(data);
     setOnboarded(true);
     setWizardOpen(false);
@@ -83,21 +82,17 @@ const Index = () => {
     }
   };
 
-  const tweaks = (
-      <TweaksPanel
-        theme={theme}
-        setTheme={setTheme}
-        currency={resort.currency}
-        setCurrency={(c) => setResort({ ...resort, currency: c })}
-        onRestart={() => setWizardOpen(true)}
-        variant={isAdmin ? "inline" : "floating"}
-        animationPreset={animPreset}
-        setAnimationPreset={setAnim}
-        defaultOpen={tweaksAutoOpen}
-      />
-    );
+  const commonTweaksProps = {
+    theme,
+    setTheme,
+    currency: resort.currency,
+    setCurrency: (c: typeof resort.currency) => setResort({ ...resort, currency: c }),
+    onRestart: () => setWizardOpen(true),
+    animationPreset: animPreset,
+    setAnimationPreset: setAnim,
+  };
 
-    const resortData = { ...resort, animationPreset: animPreset };
+  const resortData = { ...resort, animationPreset: animPreset };
 
   return (
     <I18nContext.Provider value={{ lang, setLang }}>
@@ -111,8 +106,15 @@ const Index = () => {
             onExit={() => { setIsAdmin(false); toast({ title: "Exited admin mode" }); }}
             cloudStatus={cloudStatus}
             lastSavedAt={lastSavedAt}
-            tweaksSlot={tweaks}
+            tweaksSlot={<TweaksPanel {...commonTweaksProps} variant="inline" />}
           />
+        )}
+
+        {/* Floating TweaksPanel button — visible to everyone except admin (who has it in the bar) */}
+        {!isAdmin && (
+          <div className="fixed bottom-6 right-6 z-40">
+            <TweaksPanel {...commonTweaksProps} variant="floating" defaultOpen={tweaksAutoOpen} />
+          </div>
         )}
 
         <ResortSEO resort={resortData} />
