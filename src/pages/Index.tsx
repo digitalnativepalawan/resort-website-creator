@@ -47,7 +47,7 @@ const Index = () => {
   const [tweaksShown, setTweaksShown] = useState<boolean>(() => {
     try { return localStorage.getItem(TWEAKS_SHOWN_KEY) === "1"; } catch { return false; }
   });
-  const [tweaksAutoOpen, setTweaksAutoOpen] = useState(false);
+  const [tweaksOpen, setTweaksOpen] = useState(false);
   const { toast } = useToast();
 
   // Apply persisted theme on first paint
@@ -65,7 +65,7 @@ const Index = () => {
       toast({ title: "Saved", description: "Site updated." });
     } else if (!tweaksShown) {
       // First-time onboarding — open TweaksPanel so user discovers motion/style settings
-      setTweaksAutoOpen(true);
+      setTweaksOpen(true);
       setTweaksShown(true);
       try { localStorage.setItem(TWEAKS_SHOWN_KEY, "1"); } catch {}
     }
@@ -110,10 +110,15 @@ const Index = () => {
           />
         )}
 
-        {/* Floating TweaksPanel button — visible to everyone except admin (who has it in the bar) */}
+        {/* Floating TweaksPanel — visible to everyone except admin */}
         {!isAdmin && (
           <div className="fixed bottom-6 right-6 z-40">
-            <TweaksPanel {...commonTweaksProps} variant="floating" defaultOpen={tweaksAutoOpen} />
+            <TweaksPanel
+              {...commonTweaksProps}
+              variant="floating"
+              open={tweaksOpen}
+              onOpenChange={setTweaksOpen}
+            />
           </div>
         )}
 

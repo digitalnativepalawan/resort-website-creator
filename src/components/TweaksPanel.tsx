@@ -16,9 +16,10 @@ interface Props {
   /** "floating" = standalone pill (default), "inline" = compact icon for admin bar */
   variant?: "floating" | "inline";
   animationPreset?: AnimationPreset;
-  setAnimationPreset?: (v: AnimationPreset) => void;
-  /** When true, the sheet opens automatically (used after first onboarding). */
-  defaultOpen?: boolean;
+    setAnimationPreset?: (v: AnimationPreset) => void;
+    /** Controlled open state. Sheet opens/closes based on this. */
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 function ColorRow({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -33,7 +34,7 @@ function ColorRow({ label, value, onChange }: { label: string; value: string; on
   );
 }
 
-export function TweaksPanel({ theme, setTheme, currency, setCurrency, onRestart, variant = "floating", animationPreset, setAnimationPreset, defaultOpen }: Props) {
+export function TweaksPanel({ theme, setTheme, currency, setCurrency, onRestart, variant = "floating", animationPreset, setAnimationPreset, open, onOpenChange }: Props) {
   const update = <K extends keyof ThemeTweaks>(k: K, v: ThemeTweaks[K]) => setTheme({ ...theme, [k]: v });
 
   const trigger = variant === "inline" ? (
@@ -60,7 +61,7 @@ export function TweaksPanel({ theme, setTheme, currency, setCurrency, onRestart,
   ];
 
   return (
-    <Sheet defaultOpen={defaultOpen}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent className="bg-surface w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
