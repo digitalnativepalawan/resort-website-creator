@@ -21,7 +21,7 @@ const Index = () => {
     settingsLoaded, isAdmin, setIsAdmin, resetResort, clearResort, publishNow, cloudStatus, lastSavedAt,
     adminPasskey, setAdminPasskey,
   } = useResortStore();
-  const [wizardOpen, setWizardOpen] = useState(!onboarded);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const [lang, setLangState] = useState<LangCode>(() => {
     try { return (localStorage.getItem(LANG_KEY) as LangCode) || "EN"; } catch { return "EN"; }
