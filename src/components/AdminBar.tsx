@@ -5,7 +5,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Pencil, RotateCcw, Trash2, LogOut, Shield, UploadCloud } from "lucide-react";
+import { Pencil, RotateCcw, Trash2, LogOut, Shield, UploadCloud, Bot } from "lucide-react";
 import { CloudStatusIndicator, CloudStatus } from "@/components/CloudStatusIndicator";
 
 interface Props {
@@ -14,13 +14,14 @@ interface Props {
   onClear: () => void;
   onExit: () => void;
   onPublish: () => void;
+  onAgent: () => void;
   cloudStatus: CloudStatus;
   lastSavedAt: number | null;
   /** Slot for the Tweaks trigger so everything sits in one uniform bar */
   tweaksSlot?: ReactNode;
 }
 
-export function AdminBar({ onEdit, onReset, onClear, onExit, onPublish, cloudStatus, lastSavedAt, tweaksSlot }: Props) {
+export function AdminBar({ onEdit, onReset, onClear, onExit, onPublish, onAgent, cloudStatus, lastSavedAt, tweaksSlot }: Props) {
   const [confirm, setConfirm] = useState<null | "reset" | "clear">(null);
 
   const cfg = {
@@ -66,6 +67,7 @@ export function AdminBar({ onEdit, onReset, onClear, onExit, onPublish, cloudSta
           </div>
           <div className="flex items-center gap-0.5 sm:gap-1">
             <CloudStatusIndicator status={cloudStatus} lastSavedAt={lastSavedAt} />
+            <IconBtn label="Agent" icon={Bot} onClick={onAgent} />
             <IconBtn label="Edit" icon={Pencil} onClick={onEdit} />
             <IconBtn label="Publish" icon={UploadCloud} onClick={onPublish} />
             <IconBtn label="Reset" icon={RotateCcw} onClick={() => setConfirm("reset")} />

@@ -9,6 +9,9 @@ import { AdminBar } from "@/components/AdminBar";
 import { useToast } from "@/hooks/use-toast";
 import { I18nContext, LangCode } from "@/lib/i18n";
 import { ResortSEO } from "@/components/ResortSEO";
+import { ConciergeChat } from "@/components/ConciergeChat";
+import { AgentAdmin } from "@/components/AgentAdmin";
+import { useAgentConfig } from "@/hooks/useAgentConfig";
 
 const LANG_KEY = "resort.lang.v1";
 const AUTO_PUBLISH_KEY = "resort.autopublish.v1";
@@ -49,6 +52,11 @@ const Index = () => {
   });
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const { toast } = useToast();
+
+  // Agent (concierge) config + separate admin gate.
+  const { config: agentConfig, save: saveAgent, loaded: agentLoaded } = useAgentConfig();
+  const [agentOpen, setAgentOpen] = useState(false);
+  const AGENT_ENDPOINT = import.meta.env.VITE_AGENT_API || "";
 
   // Apply persisted theme on first paint
   useEffect(() => { applyTheme(theme); }, []); // eslint-disable-line
@@ -100,6 +108,7 @@ const Index = () => {
         {isAdmin && (
           <AdminBar
             onEdit={() => setWizardOpen(true)}
+            onAgent={() => setAgentOpen(true)}
             onPublish={() => { void publishNow(); }}
             onReset={() => { resetResort(); toast({ title: "Reset complete", description: "Default content restored." }); }}
             onClear={() => { clearResort(); toast({ title: "Cleared", description: "Site is now blank." }); setWizardOpen(true); }}
@@ -127,6 +136,41 @@ const Index = () => {
         <div className={isAdmin ? "pt-11" : ""}>
           <ResortSite resort={resortData} onAdminClick={handleAdminClick} />
         </div>
+
+        {/* Working Guest Concierge AI — learns from onboarding data */}
+        {agentLoaded && (
+          <ConciergeChat
+            resort={resortData}
+            agentConfig={agentConfig}
+            agentEndpoint={AGENT_ENDPOINT}
+          />
+        )}
+
+        {/* Always-available launcher so the operator can reach the Agent
+            admin directly — no need to unlock the site admin first. */}
+        {!agentOpen && (
+          <button
+            onClick={() => setAgentOpen(true)}
+            className="fixed bottom-24 right-6 z-40 flex items-center gap-2 rounded-full border border-border bg-card px-4 py-3 text-xs font-semibold uppercase tracking-[0.15em] shadow-card hover:bg-primary/10"
+            aria-label="Open Agent admin"
+          >
+            <Bot className="h-4 w-4 text-primary" /> Agent
+          </button>
+        )}
+
+        {/* Separate agent-only admin (own passkey) */}
+        <AgentAdmin
+          open={agentOpen}
+          onClose={() => setAgentOpen(false)}
+          config={agentConfig}
+          resort={resortData}
+          onFaqChange={(faqs) => setResort({ ...resort, faqs })}
+          onSave={(next) => {
+            void saveAgent(next);
+            setAgentOpen(false);
+            toast({ title: "Agent saved", description: "Concierge knowledge & skills updated." });
+          }}
+        />
 
         <OnboardingWizard
           open={settingsLoaded && wizardOpen}
